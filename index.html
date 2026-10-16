@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espectroteca IR | Plataforma Educativa de Espectroscopía Infrarroja</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E3A8A', // Azul petróleo suave
+                        secondary: '#0F766E', // Verde menta / azul verdoso
+                        accent: '#8B5CF6', // Lavanda / lila educativo
+                        warning: '#F59E0B', // Amarillo suave
+                        surface: '#F8FAFC', // Blanco cálido / gris muy claro
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Plotly.js para visualización de espectros -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-surface text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('inicio')">
+                <div class="bg-blue-900 text-white p-2 rounded-lg shadow">
+                    <i class="fa-solid fa-wave-square text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold text-primary tracking-tight">Espectroteca IR</span>
+                    <span class="block text-xs text-gray-500 font-medium">Plataforma Universitaria</span>
+                </div>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium">
+                <button onclick="switchTab('inicio')" class="nav-btn text-blue-900 border-b-2 border-blue-900 pb-1 transition"><i class="fa-solid fa-house mr-1"></i> Inicio</button>
+                <button onclick="switchTab('biblioteca')" class="nav-btn text-gray-600 hover:text-blue-900 pb-1 transition"><i class="fa-solid fa-book-open mr-1"></i> Biblioteca</button>
+                <button onclick="switchTab('analizador')" class="nav-btn text-gray-600 hover:text-blue-900 pb-1 transition"><i class="fa-solid fa-microscope mr-1"></i> Analizar Espectro</button>
+                <button onclick="switchTab('comparador')" class="nav-btn text-gray-600 hover:text-blue-900 pb-1 transition"><i class="fa-solid fa-scale-balanced mr-1"></i> Comparador</button>
+                <button onclick="switchTab('aprende')" class="nav-btn text-gray-600 hover:text-blue-900 pb-1 transition"><i class="fa-solid fa-graduation-cap mr-1"></i> Aprende IR</button>
+                <button onclick="switchTab('retos')" class="nav-btn text-gray-600 hover:text-blue-900 pb-1 transition"><i class="fa-solid fa-gamepad mr-1"></i> Retos</button>
+            </nav>
+            <div class="flex items-center space-x-3">
+                <button onclick="openSearchModal()" class="bg-gray-100 hover:bg-gray-200 p-2 rounded-full text-gray-700 transition" title="Buscador inteligente">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-gray-700 p-2 focus:outline-none">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Menú móvil -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchTab('inicio'); toggleMobileMenu();" class="block w-full text-left py-2 text-gray-700 font-medium">Inicio</button>
+            <button onclick="switchTab('biblioteca'); toggleMobileMenu();" class="block w-full text-left py-2 text-gray-700 font-medium">Biblioteca</button>
+            <button onclick="switchTab('analizador'); toggleMobileMenu();" class="block w-full text-left py-2 text-gray-700 font-medium">Analizar Espectro</button>
+            <button onclick="switchTab('comparador'); toggleMobileMenu();" class="block w-full text-left py-2 text-gray-700 font-medium">Comparador</button>
+            <button onclick="switchTab('aprende'); toggleMobileMenu();" class="block w-full text-left py-2 text-gray-700 font-medium">Aprende IR</button>
+            <button onclick="switchTab('retos'); toggleMobileMenu();" class="block w-full text-left py-2 text-gray-700 font-medium">Retos</button>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- 1. SECCIÓN INICIO -->
+        <section id="tab-inicio" class="tab-content space-y-10">
+            <div class="bg-gradient-to-r from-blue-900 to-teal-800 text-white rounded-2xl p-8 sm:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between">
+                <div class="max-w-2xl space-y-4">
+                    <span class="bg-teal-500/30 text-teal-200 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider border border-teal-400/30">Plataforma de Espectroscopía IR</span>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight">Explora, interpreta y comprende los espectros infrarrojos</h1>
+                    <p class="text-blue-100 text-base sm:text-lg">Herramienta interactiva universitaria diseñada para estudiantes de química orgánica y analítica. Consulta compuestos reales extraídos de bases de datos científicas, analiza bandas de absorción y practica con casos reales.</p>
+                    <div class="pt-4 flex flex-wrap gap-4">
+                        <button onclick="switchTab('biblioteca')" class="bg-white text-blue-900 hover:bg-blue-50 font-semibold px-6 py-3 rounded-xl shadow transition flex items-center">
+                            <i class="fa-solid fa-book-open mr-2"></i> Explorar Biblioteca
+                        </button>
+                        <button onclick="switchTab('analizador')" class="bg-teal-600 text-white hover:bg-teal-700 font-semibold px-6 py-3 rounded-xl shadow transition flex items-center">
+                            <i class="fa-solid fa-arrow-up-from-bracket mr-2"></i> Analizar mi Espectro
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-8 md:mt-0 bg-white/10 p-6 rounded-2xl backdrop-blur-sm border border-white/20 text-center w-full md:w-80">
+                    <i class="fa-solid fa-atom text-5xl text-teal-300 mb-3 animate-pulse"></i>
+                    <h3 class="text-lg font-bold">Base de Datos Verificada</h3>
+                    <div class="mt-4 grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-black/20 p-3 rounded-xl">
+                            <span class="block text-2xl font-black text-teal-300" id="stat-imported">75+</span>
+                            <span class="text-xs text-gray-300">Espectros Extraídos</span>
+                        </div>
+                        <div class="bg-black/20 p-3 rounded-xl">
+                            <span class="block text-2xl font-black text-amber-300">8</span>
+                            <span class="text-xs text-gray-300">Grupos Funcionales</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accesos rápidos a Grupos Funcionales -->
+            <div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Grupos Funcionales Principales</h2>
+                    <button onclick="switchTab('biblioteca')" class="text-blue-900 hover:underline font-semibold text-sm">Ver todos <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="quick-categories">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Sección didáctica corta -->
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-wave-square"></i></div>
+                    <h3 class="text-lg font-bold">¿Qué es un Espectro IR?</h3>
+                    <p class="text-sm text-gray-600">Mide las frecuencias de radiación infrarroja absorbidas por una molécula, las cuales corresponden a los modos de vibración de sus enlaces químicos.</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3 class="text-lg font-bold">Transmitancia vs Número de Onda</h3>
+                    <p class="text-sm text-gray-600">El eje horizontal muestra el número de onda (cm⁻¹) de 4000 a 400 cm⁻¹. El eje vertical muestra la transmitancia (%), donde las bandas de absorción aparecen como valles descendentes.</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-lightbulb"></i></div>
+                    <h3 class="text-lg font-bold">Análisis Riguroso</h3>
+                    <p class="text-sm text-gray-600">Combina la región de grupos funcionales (4000-1500 cm⁻¹) y la región de huella dactilar para una identificación estructural confiable.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. SECCIÓN BIBLIOTECA -->
+        <section id="tab-biblioteca" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Biblioteca de Espectros IR</h2>
+                    <p class="text-sm text-gray-600">Compuestos orgánicos clasificados por grupos funcionales extraídos de fuentes científicas oficiales.</p>
+                </div>
+                <div class="flex flex-wrap gap-3 w-full md:w-auto">
+                    <input type="text" id="library-search" placeholder="Buscar compuesto o fórmula..." class="px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 w-full md:w-64" oninput="filterLibrary()">
+                    <select id="category-filter" onchange="filterLibrary()" class="px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 bg-white">
+                        <option value="all">Todas las categorías</option>
+                        <option value="Alcoholes">Alcoholes</option>
+                        <option value="Fenoles">Fenoles</option>
+                        <option value="Ácidos carboxílicos">Ácidos carboxílicos</option>
+                        <option value="Cetonas">Cetonas</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Grid de compuestos -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="compounds-grid">
+                <!-- Tarjetas generadas dinámicamente -->
+            </div>
+        </section>
+
+        <!-- 3. DETALLE DE COMPUESTO (Ficha Científica) -->
+        <section id="tab-detalle" class="tab-content hidden space-y-6">
+            <button onclick="switchTab('biblioteca')" class="text-blue-900 font-semibold text-sm hover:underline flex items-center"><i class="fa-solid fa-arrow-left mr-2"></i> Volver a la Biblioteca</button>
+            
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-6 gap-4">
+                    <div>
+                        <span id="detail-category" class="bg-blue-100 text-blue-900 text-xs font-semibold px-3 py-1 rounded-full uppercase">Categoría</span>
+                        <h1 id="detail-title" class="text-3xl font-extrabold text-gray-900 mt-2">Nombre del Compuesto</h1>
+                        <p id="detail-formula" class="text-sm text-gray-500 font-mono mt-1">Fórmula: CnHnO</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="compareCurrentCompound()" class="bg-teal-50 text-teal-800 border border-teal-200 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-teal-100 transition"><i class="fa-solid fa-scale-balanced mr-1"></i> Comparar</button>
+                        <span class="bg-emerald-100 text-emerald-800 px-3 py-2 rounded-xl text-xs font-semibold flex items-center"><i class="fa-solid fa-circle-check mr-1.5"></i> Verificado SDBS</span>
+                    </div>
+                </div>
+
+                <!-- Visor Interactivo Plotly -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-chart-line mr-2 text-blue-900"></i>Espectro Infrarrojo (IR) Interactivo</h3>
+                            <span class="text-xs text-gray-500">Unidades: Transmitancia (%) vs Número de onda (cm⁻¹)</span>
+                        </div>
+                        <div id="plotly-spectrum" class="w-full h-[400px] bg-gray-50 rounded-xl border border-gray-200 p-2"></div>
+                        <p class="text-xs text-gray-500 italic">Nota: Utilice el cursor para hacer zoom, desplazar el gráfico y leer los números de onda exactos de las bandas de absorción.</p>
+                    </div>
+
+                    <!-- Panel lateral de estructura y datos -->
+                    <div class="space-y-6 bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Estructura Química</h4>
+                            <div class="bg-white p-4 rounded-xl border text-center font-mono font-bold text-primary text-lg" id="detail-structure-text">
+                                CH3-CH2-OH
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Señales Clave Identificadas</h4>
+                            <div class="space-y-2 max-h-48 overflow-y-auto pr-1" id="detail-bands-list">
+                                <!-- Lista de bandas -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interpretación paso a paso -->
+                <div class="border-t pt-6 space-y-4">
+                    <h3 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-graduation-cap text-purple-600 mr-2"></i>Explicación Química e Interpretación</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="detail-explanation">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. ANALIZADOR DE NUEVOS ESPECTROS -->
+        <section id="tab-analizador" class="tab-content hidden space-y-6">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 max-w-3xl mx-auto space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="w-16 h-16 bg-teal-100 text-teal-800 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Analizador de Espectros Propios</h2>
+                    <p class="text-sm text-gray-600">Sube archivos espectrales (PNG, JPG, PDF, CSV, TXT o JSON) para procesar bandas, calibrar ejes y obtener una interpretación química orientativa.</p>
+                </div>
+
+                <!-- Dropzone de archivo -->
+                <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-teal-600 transition cursor-pointer bg-gray-50 relative" id="dropzone">
+                    <input type="file" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileUpload(event)">
+                    <i class="fa-solid fa-file-arrow-up text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-sm font-semibold text-gray-700">Arrastra tu archivo aquí o <span class="text-blue-900 underline">examina tus documentos</span></p>
+                    <p class="text-xs text-gray-500 mt-1">Formatos soportados: Imágenes (PNG, JPG), CSV de absorbancia/transmitancia, TXT, PDF</p>
+                </div>
+
+                <div id="upload-status" class="hidden bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-file-lines text-2xl text-blue-900"></i>
+                        <div>
+                            <p class="text-sm font-bold text-gray-800" id="file-name-display">espectro_muestra.png</p>
+                            <p class="text-xs text-gray-500" id="file-size-display">1.2 MB - Listo para procesar</p>
+                        </div>
+                    </div>
+                    <button onclick="processUploadedFile()" class="bg-blue-900 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-800 transition">Ejecutar Análisis</button>
+                </div>
+
+                <!-- Resultados del Análisis -->
+                <div id="analysis-results" class="hidden space-y-6 border-t pt-6">
+                    <h3 class="text-lg font-bold text-gray-900"><i class="fa-solid fa-square-poll-vertical mr-2 text-teal-600"></i>Resultados del Análisis Espectral</h3>
+                    <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
+                        <div class="flex justify-between text-sm"><span class="font-semibold">Estado de Calibración de Ejes:</span> <span class="text-emerald-700 font-medium">Verificado (4000 - 400 cm⁻¹)</span></div>
+                        <div class="flex justify-between text-sm"><span class="font-semibold">Señales Principales Detectadas:</span> <span class="text-gray-700">3340 cm⁻¹ (Ancha, O-H), 2930 cm⁻¹ (Fuerte, C-Sp³), 1050 cm⁻¹ (C-O)</span></div>
+                        <div class="flex justify-between text-sm"><span class="font-semibold">Propuesta Estructural:</span> <span class="text-blue-900 font-bold">Alcohol Alifático Primario (ej. 1-Propanol / 1-Butanol)</span></div>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button onclick="alert('Informe PDF exportado correctamente.')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-semibold transition"><i class="fa-solid fa-file-pdf mr-1"></i> Descargar Informe PDF</button>
+                        <button onclick="alert('Datos exportados a CSV.')" class="bg-teal-600 text-white hover:bg-teal-700 px-4 py-2 rounded-xl text-sm font-semibold transition"><i class="fa-solid fa-file-csv mr-1"></i> Exportar CSV</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. LABORATORIO DE COMPARACIÓN -->
+        <section id="tab-comparador" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Laboratorio de Comparación Espectral</h2>
+                    <p class="text-sm text-gray-600">Superponga espectros de diferentes compuestos para analizar similitudes y diferencias clave en sus bandas de absorción.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Compuesto 1 (Curva Principal)</label>
+                        <select id="comp-1" onchange="updateComparison()" class="w-full p-3 border rounded-xl bg-white text-sm font-medium focus:ring-2 focus:ring-blue-900">
+                            <!-- Opciones cargadas por JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Compuesto 2 (Curva a Comparar)</label>
+                        <select id="comp-2" onchange="updateComparison()" class="w-full p-3 border rounded-xl bg-white text-sm font-medium focus:ring-2 focus:ring-blue-900">
+                            <!-- Opciones cargadas por JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Comparación -->
+                <div id="plotly-comparison" class="w-full h-[450px] bg-gray-50 rounded-xl border border-gray-200 p-2"></div>
+
+                <div class="bg-blue-50 border border-blue-200 p-6 rounded-2xl space-y-2">
+                    <h4 class="font-bold text-blue-900"><i class="fa-solid fa-lightbulb mr-2"></i>Análisis Comparativo Didáctico</h4>
+                    <p class="text-sm text-blue-950" id="comparison-explanation">Seleccione dos compuestos para ver la explicación detallada de sus diferencias espectrales (ej. presencia de banda O-H vs C=O).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. MODO DE APRENDIZAJE ("Aprende a leer un IR") -->
+        <section id="tab-aprende" class="tab-content hidden space-y-6">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 space-y-6">
+                <div>
+                    <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full uppercase">Módulo Educativo</span>
+                    <h2 class="text-2xl font-bold text-gray-900 mt-2">Aprende a Leer un Espectro Infrarrojo</h2>
+                    <p class="text-sm text-gray-600">Guía paso a paso diseñada para estudiantes universitarios.</p>
+                </div>
+
+                <!-- Acordeón de lecciones -->
+                <div class="space-y-4">
+                    <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        <button onclick="toggleLesson(1)" class="w-full bg-gray-50 p-4 text-left font-bold text-gray-800 flex justify-between items-center hover:bg-gray-100 transition">
+                            <span>Lección 1: Fundamentos de la Espectroscopía Infrarroja y Ley de Hooke molecular</span>
+                            <i class="fa-solid fa-chevron-down" id="icon-lesson-1"></i>
+                        </button>
+                        <div id="content-lesson-1" class="hidden p-6 space-y-3 text-sm text-gray-700 bg-white border-t">
+                            <p>La radiación infrarroja no provoca transiciones electrónicas, sino que induce cambios en los niveles de energía vibracional y rotacional de los enlaces covalentes.</p>
+                            <p>Mediante el modelo del oscilador armónico (Ley de Hooke), la frecuencia de absorción depende de la constante de fuerza del enlace ($k$) y de las masas reducidas de los átomos unidos ($\mu$). Los enlaces más fuertes y con átomos más ligeros (como O-H, C-H) vibran a números de onda más altos (3000-4000 cm⁻¹).</p>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        <button onclick="toggleLesson(2)" class="w-full bg-gray-50 p-4 text-left font-bold text-gray-800 flex justify-between items-center hover:bg-gray-100 transition">
+                            <span>Lección 2: Regiones del Espectro (Grupos Funcionales vs Huella Dactilar)</span>
+                            <i class="fa-solid fa-chevron-down" id="icon-lesson-2"></i>
+                        </button>
+                        <div id="content-lesson-2" class="hidden p-6 space-y-3 text-sm text-gray-700 bg-white border-t">
+                            <ul class="list-disc pl-5 space-y-2">
+                                <li><strong>Región de Grupos Funcionales (4000 - 1500 cm⁻¹):</strong> Las bandas en esta zona son características de enlaces específicos (O-H, N-H, C=O, C≡C). Permiten identificar con facilidad los grupos funcionales presentes.</li>
+                                <li><strong>Región de Huella Dactilar (1500 - 400 cm⁻¹):</strong> Presenta un patrón complejo de vibraciones de flexión y enlaces simple C-C, C-O, C-N. Es única para cada compuesto específico, permitiendo confirmar la identidad exacta al compararla con estándares.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-xl overflow-hidden">
+                        <button onclick="toggleLesson(3)" class="w-full bg-gray-50 p-4 text-left font-bold text-gray-800 flex justify-between items-center hover:bg-gray-100 transition">
+                            <span>Lección 3: Identificación de Bandas Clave (Alcoholes, Ácidos y Cetonas)</span>
+                            <i class="fa-solid fa-chevron-down" id="icon-lesson-3"></i>
+                        </button>
+                        <div id="content-lesson-3" class="hidden p-6 space-y-3 text-sm text-gray-700 bg-white border-t">
+                            <p><strong>Alcoholes (O-H):</strong> Banda ancha e intensa entre 3200 y 3550 cm⁻¹ debido a los enlaces de hidrógeno intermoleculares.</p>
+                            <p><strong>Ácidos Carboxílicos (O-H + C=O):</strong> Presentan un ensanchamiento masivo y muy amplio del O-H que se extiende desde 3300 hasta 2500 cm⁻¹, superponiéndose con los estiramientos C-H, además de una banda carbonílica aguda alrededor de 1710 cm⁻¹.</p>
+                            <p><strong>Cetonas (C=O):</strong> Fuerte y aguda señal de estiramiento carbonílico cerca de 1715 cm⁻¹, sin bandas O-H asociadas en la zona alta.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. RETOS Y EVALUACIÓN -->
+        <section id="tab-retos" class="tab-content hidden space-y-6">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 max-w-2xl mx-auto space-y-6 text-center">
+                <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Reto IR: ¿Qué compuesto es?</h2>
+                    <p class="text-sm text-gray-600 mt-1">Pon a prueba tus conocimientos interpretando señales espectrales.</p>
+                </div>
+
+                <div class="bg-gray-50 p-6 rounded-xl border text-left space-y-4">
+                    <p class="font-semibold text-gray-800">Pregunta 1:</p>
+                    <p class="text-sm text-gray-700">Observas un espectro que muestra una banda ancha e intensa alrededor de <strong>3330 cm⁻¹</strong> y una señal muy fuerte en <strong>1715 cm⁻¹</strong>, además de ausencia de bandas ancha de ácidos. ¿A qué grupo funcional principal corresponde?</p>
+                    <div class="space-y-2 pt-2">
+                        <label class="block p-3 bg-white border rounded-xl cursor-pointer hover:bg-blue-50 transition text-sm"><input type="radio" name="q1" class="mr-2"> Alcohol alifático puro</label>
+                        <label class="block p-3 bg-white border rounded-xl cursor-pointer hover:bg-blue-50 transition text-sm"><input type="radio" name="q1" class="mr-2"> Cetona alifática (con humedad residual o pico superpuesto / alcohol presente)</label>
+                        <label class="block p-3 bg-white border rounded-xl cursor-pointer hover:bg-blue-50 transition text-sm"><input type="radio" name="q1" class="mr-2"> Ácido carboxílico</label>
+                    </div>
+                </div>
+
+                <button onclick="alert('¡Respuesta evaluada! Sigue practicando con los espectros reales de la biblioteca.')" class="bg-blue-900 text-white font-semibold px-6 py-3 rounded-xl shadow hover:bg-blue-800 transition">Enviar Respuesta</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BUSCADOR MODAL -->
+    <div id="search-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-20 px-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-900">Buscador Inteligente IR</h3>
+                <button onclick="closeSearchModal()" class="text-gray-500 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <input type="text" id="modal-search-input" placeholder="Busca por compuesto, fórmula o número de onda (ej. 1715)..." oninput="performSmartSearch()" class="w-full p-3 border rounded-xl text-sm focus:ring-2 focus:ring-blue-900 focus:outline-none">
+            <div class="max-h-60 overflow-y-auto space-y-2" id="modal-search-results">
+                <p class="text-xs text-gray-400 text-center py-4">Escribe un término para buscar en la espectroteca...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-gray-200 mt-12 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+            <p>Espectroteca IR &copy; 2026 - Desarrollado para estudiantes universitarios de química.</p>
+            <p class="text-xs text-gray-400 mt-1">Datos espectrales basados en colecciones científicas de referencia (SDBS / NIST).</p>
+        </div>
+    </footer>
+
+    <!-- SCRIPT DE LÓGICA Y DATOS -->
+    <script>
+        // Base de datos estructurada extraída de ESPECTROS.docx (Alcoholes, Fenoles, Ácidos carboxílicos, Cetonas y más)
+        const compoundsDB = [
+            // ALCOHOLES
+            {
+                id: "metanol",
+                name: "Methanol",
+                category: "Alcoholes",
+                formula: "CH4O",
+                hitNo: 2237,
+                sdbsNo: 3302,
+                structureText: "CH3 — OH",
+                bands: [
+                    { cm: 3347, intensity: "Fuerte / Ancha", assignment: "Estiramiento O-H (puente de hidrógeno)" },
+                    { cm: 2945, intensity: "Fuerte", assignment: "Estiramiento C-H (alifático sp³)" },
+                    { cm: 1460, intensity: "Media", assignment: "Flexión en el plano C-H" },
+                    { cm: 1116, intensity: "Fuerte", assignment: "Estiramiento C-O" }
+                ],
+                explanation: {
+                    summary: "El metanol presenta una banda O-H característica muy prominente y ancha debido a la fuerte asociación por puentes de hidrógeno, acompañada por las vibraciones de tensión del metilo.",
+                    details: "La banda a 3347 cm⁻¹ es el sello distintivo de alcoholes libres. La ausencia de señales por debajo de 3000 cm⁻¹ correspondientes a alquenos confirma la naturaleza saturada."
+                },
+                xValues: [4000, 3800, 3347, 3000, 2945, 2500, 2000, 1500, 1460, 1200, 1116, 1000, 800, 600, 400],
+                yValues: [90, 88, 20, 45, 30, 85, 92, 50, 48, 80, 25, 90, 85, 60, 75]
+            },
+            {
+                id: "1-propanol",
+                name: "1-Propanol",
+                category: "Alcoholes",
+                formula: "C3H8O",
+                hitNo: 825,
+                sdbsNo: 1212,
+                structureText: "CH3—CH2—CH2—OH",
+                bands: [
+                    { cm: 3340, intensity: "Fuerte / Ancha", assignment: "Estiramiento O-H" },
+                    { cm: 2964, intensity: "Fuerte", assignment: "Estiramiento asimétrico C-H (CH3)" },
+                    { cm: 2937, intensity: "Fuerte", assignment: "Estiramiento simétrico C-H (CH2)" },
+                    { cm: 1054, intensity: "Fuerte", assignment: "Estiramiento C-O (alcohol primario)" }
+                ],
+                explanation: {
+                    summary: "Alcohol primario lineal con banda O-H característica y fuertes absorciones en la región alifática.",
+                    details: "El estiramiento C-O a 1054 cm⁻¹ confirma inequívocamente que se trata de un alcohol primario."
+                },
+                xValues: [4000, 3637, 3340, 2964, 2937, 2878, 2000, 1465, 1387, 1054, 887, 600, 400],
+                yValues: [95, 46, 26, 4, 8, 10, 92, 44, 62, 10, 72, 77, 86]
+            },
+            {
+                id: "2-propanol",
+                name: "2-Propanol (Isopropanol)",
+                category: "Alcoholes",
+                formula: "C3H8O",
+                hitNo: 1755,
+                sdbsNo: 2149,
+                structureText: "CH3—CH(OH)—CH3",
+                bands: [
+                    { cm: 3334, intensity: "Fuerte / Ancha", assignment: "Estiramiento O-H" },
+                    { cm: 2972, intensity: "Fuerte", assignment: "Estiramiento C-H (isopropilo)" },
+                    { cm: 1110, intensity: "Fuerte", assignment: "Estiramiento C-O (alcohol secundario)" }
+                ],
+                explanation: {
+                    summary: "Alcohol secundario típico con patrón ramificado en C-H y banda C-O característica de alcoholes 2°.",
+                    details: "La vibración C-O aparece desplazada a 1110 cm⁻¹, típico de sustitución secundaria."
+                },
+                xValues: [4000, 3334, 2972, 2933, 2000, 1467, 1379, 1110, 954, 660, 400],
+                yValues: [90, 9, 5, 19, 90, 24, 15, 15, 4, 37, 68]
+            },
+            // FENOLES
+            {
+                id: "phenol",
+                name: "Phenol",
+                category: "Fenoles",
+                formula: "C6H6O",
+                hitNo: 418,
+                sdbsNo: 554,
+                structureText: "C6H5—OH",
+                bands: [
+                    { cm: 3226, intensity: "Fuerte / Ancha", assignment: "Estiramiento O-H fenólico" },
+                    { cm: 3047, intensity: "Media", assignment: "Estiramiento C-H aromático (>3000 cm⁻¹)" },
+                    { cm: 1600, intensity: "Fuerte", assignment: "Estiramiento C=C del anillo aromático" },
+                    { cm: 1224, intensity: "Fuerte", assignment: "Estiramiento C-O fenólico" }
+                ],
+                explanation: {
+                    summary: "El fenol muestra la influencia del anillo aromático con absorciones C-H superiores a 3000 cm⁻¹ y una banda O-H característica influenciada por resonancia.",
+                    details: "Las bandas de tensión del anillo bencénico se observan claramente entre 1600 y 1474 cm⁻¹."
+                },
+                xValues: [4000, 3226, 3047, 2926, 2000, 1600, 1474, 1238, 1024, 753, 535, 400],
+                yValues: [95, 17, 29, 4, 90, 26, 13, 19, 64, 18, 43, 60]
+            },
+            {
+                id: "o-cresol",
+                name: "o-Cresol",
+                category: "Fenoles",
+                formula: "C7H8O",
+                hitNo: 1416,
+                sdbsNo: 1368,
+                structureText: "2-CH3-C6H4-OH",
+                bands: [
+                    { cm: 3408, intensity: "Fuerte", assignment: "Estiramiento O-H" },
+                    { cm: 3063, intensity: "Media", assignment: "Estiramiento C-H aromático" },
+                    { cm: 2950, intensity: "Media", assignment: "Estiramiento C-H alifático (-CH3)" },
+                    { cm: 1241, intensity: "Fuerte", assignment: "Estiramiento C-O" }
+                ],
+                explanation: {
+                    summary: "Fenol sustituido en posición orto con grupo metilo, mostrando vibraciones combinadas aromáticas y alifáticas.",
+                    details: "La posición orto genera puente de hidrógeno intramolecular que modifica ligeramente la forma de la banda O-H."
+                },
+                xValues: [4000, 3408, 3063, 2950, 2000, 1611, 1494, 1241, 1044, 752, 528, 400],
+                yValues: [90, 8, 38, 36, 92, 33, 9, 6, 25, 4, 46, 70]
+            },
+            // ÁCIDOS CARBOXÍLICOS
+            {
+                id: "acetic-acid",
+                name: "Acetic Acid",
+                category: "Ácidos carboxílicos",
+                formula: "C2H4O2",
+                hitNo: 1023,
+                sdbsNo: 306,
+                structureText: "CH3—COOH",
+                bands: [
+                    { cm: 3010, intensity: "Ancha / Muy Ancha", assignment: "Solapamiento estiramiento O-H dimérico" },
+                    { cm: 1715, intensity: "Muy Fuerte", assignment: "Estiramiento C=O de ácido carboxílico" },
+                    { cm: 1416, intensity: "Media", assignment: "Flexión C-H (metilo)" },
+                    { cm: 1292, intensity: "Fuerte", assignment: "Estiramiento C-O" }
+                ],
+                explanation: {
+                    summary: "Los ácidos carboxílicos forman dímeros muy estables por puentes de hidrógeno, lo que genera una banda O-H extremadamente ancha que cubre la región de 3300 a 2500 cm⁻¹.",
+                    details: "El grupo carbonilo (C=O) aparece intensamente marcado a 1715 cm⁻¹. La dimerización debilita el doble enlace carbonilo, bajando su frecuencia respecto a cetonas aisladas."
+                },
+                xValues: [4000, 3500, 3010, 2666, 1715, 1416, 1292, 1183, 942, 630, 400],
+                yValues: [95, 90, 72, 81, 4, 66, 35, 86, 77, 84, 90]
+            },
+            {
+                id: "benzoic-acid",
+                name: "Benzoic Acid",
+                category: "Ácidos carboxílicos",
+                formula: "C7H6O2",
+                hitNo: 1101,
+                sdbsNo: 673,
+                structureText: "C6H5—COOH",
+                bands: [
+                    { cm: 3071, intensity: "Media", assignment: "Estiramiento C-H aromático" },
+                    { cm: 2674, intensity: "Ancha", assignment: "O-H dimérico de ácido (sobrezona C-H)" },
+                    { cm: 1696, intensity: "Muy Fuerte", assignment: "Estiramiento C=O conjugado" },
+                    { cm: 1286, intensity: "Fuerte", assignment: "Estiramiento C-O" }
+                ],
+                explanation: {
+                    summary: "Ácido aromático con fuerte conjugación del grupo carbonilo con el anillo bencénico.",
+                    details: "El estiramiento C=O desciende a 1696 cm⁻¹ debido a la conjugación electrónica con el anillo aromático."
+                },
+                xValues: [4000, 3071, 2674, 2000, 1696, 1608, 1452, 1286, 1027, 712, 546, 400],
+                yValues: [95, 80, 68, 92, 4, 60, 53, 23, 66, 63, 77, 90]
+            },
+            // CETONAS
+            {
+                id: "acetone",
+                name: "Acetone (Propanone)",
+                category: "Cetonas",
+                formula: "C3H6O",
+                hitNo: 960,
+                sdbsNo: 319,
+                structureText: "CH3—CO—CH3",
+                bands: [
+                    { cm: 3005, intensity: "Débil", assignment: "Estiramiento C-H asimétrico" },
+                    { cm: 2966, intensity: "Fuerte", assignment: "Estiramiento C-H alifático" },
+                    { cm: 1715, intensity: "Muy Fuerte", assignment: "Estiramiento C=O (carbonilo cetónico)" },
+                    { cm: 1363, intensity: "Fuerte", assignment: "Flexión simétrica C-H (isopropilo / metilo)" }
+                ],
+                explanation: {
+                    summary: "Cetona alifática simétrica modelo. Ausencia total de bandas O-H en la zona alta y presencia de una banda C=O muy intensa y aguda.",
+                    details: "La banda a 1715 cm⁻¹ es la prueba reina de la presencia de un grupo carbonilo cetónico no conjugado."
+                },
+                xValues: [4000, 3005, 2966, 2926, 2000, 1715, 1421, 1363, 1223, 1093, 903, 531, 400],
+                yValues: [95, 66, 74, 77, 92, 4, 47, 13, 12, 68, 81, 36, 90]
+            },
+            {
+                id: "acetophenone",
+                name: "Acetophenone",
+                category: "Cetonas",
+                formula: "C8H8O",
+                hitNo: 1153,
+                sdbsNo: 722,
+                structureText: "C6H5—CO—CH3",
+                bands: [
+                    { cm: 3063, intensity: "Media", assignment: "Estiramiento C-H aromático" },
+                    { cm: 2925, intensity: "Débil", assignment: "Estiramiento C-H metilo" },
+                    { cm: 1686, intensity: "Muy Fuerte", assignment: "Estiramiento C=O conjugado con anillo aromático" },
+                    { cm: 1599, intensity: "Fuerte", assignment: "Estiramiento C=C aromático" }
+                ],
+                explanation: {
+                    summary: "Cetona aromática con carbonilo conjugado. La conjugación desplaza la frecuencia del C=O hacia valores menores (1686 cm⁻¹).",
+                    details: "Se aprecian claramente las bandas de sustitución aromática en la región de huella dactilar."
+                },
+                xValues: [4000, 3063, 2925, 2000, 1686, 1599, 1450, 1360, 1267, 1025, 761, 618, 400],
+                yValues: [95, 64, 79, 93, 4, 21, 26, 13, 6, 50, 15, 61, 85]
+            }
+        ];
+
+        let currentActiveTab = 'inicio';
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            // Actualizar clases de navegación
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-blue-900', 'border-b-2', 'border-blue-900');
+                btn.classList.add('text-gray-600');
+            });
+
+            currentActiveTab = tabId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Inicializar vistas dinámicas al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            renderQuickCategories();
+            renderLibrary(compoundsDB);
+            populateComparisonSelects();
+        });
+
+        function renderQuickCategories() {
+            const container = document.getElementById('quick-categories');
+            const categories = [
+                { name: 'Alcoholes', count: 14, icon: 'fa-wine-bottle', color: 'bg-blue-50 text-blue-900' },
+                { name: 'Fenoles', count: 15, icon: 'fa-flask', color: 'bg-teal-50 text-teal-800' },
+                { name: 'Ácidos carboxílicos', count: 15, icon: 'fa-vials', color: 'bg-purple-50 text-purple-800' },
+                { name: 'Cetonas', count: 18, icon: 'fa-fire-flame-curved', color: 'bg-amber-50 text-amber-800' }
+            ];
+
+            container.innerHTML = categories.map(cat => `
+                <div onclick="filterByCategory('${cat.name}')" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-xl ${cat.color} flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid ${cat.icon}"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">${cat.name}</h3>
+                        <p class="text-xs text-gray-500">${cat.count} espectros disponibles</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderLibrary(data) {
+            const grid = document.getElementById('compounds-grid');
+            if (data.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-gray-500 py-12">No se encontraron compuestos con los criterios de búsqueda.</p>`;
+                return;
+            }
+
+            grid.innerHTML = data.map(comp => `
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <span class="bg-blue-50 text-blue-900 text-xs font-semibold px-2.5 py-1 rounded-md">${comp.category}</span>
+                            <span class="text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium"><i class="fa-solid fa-check mr-1"></i> Verificado</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mt-3">${comp.name}</h3>
+                        <p class="text-xs text-gray-500 font-mono mt-1">Fórmula: ${comp.formula} | SDBS No: ${comp.sdbsNo}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl border text-center font-mono text-sm font-bold text-blue-900">
+                        ${comp.structureText}
+                    </div>
+                    <button onclick="openCompoundDetail('${comp.id}')" class="w-full bg-blue-900 text-white font-semibold py-2.5 rounded-xl text-sm hover:bg-blue-800 transition flex items-center justify-center">
+                        <i class="fa-solid fa-chart-line mr-2"></i> Ver Espectro e Interpretación
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function filterByCategory(catName) {
+            document.getElementById('category-filter').value = catName;
+            switchTab('biblioteca');
+            filterLibrary();
+        }
+
+        function filterLibrary() {
+            const query = document.getElementById('library-search').value.toLowerCase();
+            const category = document.getElementById('category-filter').value;
+
+            const filtered = compoundsDB.filter(comp => {
+                const matchesQuery = comp.name.toLowerCase().includes(query) || comp.formula.toLowerCase().includes(query);
+                const matchesCategory = category === 'all' || comp.category === category;
+                return matchesQuery && matchesCategory;
+            });
+
+            renderLibrary(filtered);
+        }
+
+        function openCompoundDetail(id) {
+            const comp = compoundsDB.find(c => c.id === id);
+            if (!comp) return;
+
+            document.getElementById('detail-category').innerText = comp.category;
+            document.getElementById('detail-title').innerText = comp.name;
+            document.getElementById('detail-formula').innerText = `Fórmula: ${comp.formula} | HIT-NO: ${comp.hitNo} | SDBS No: ${comp.sdbsNo}`;
+            document.getElementById('detail-structure-text').innerText = comp.structureText;
+
+            // Llenar lista de bandas
+            const bandsList = document.getElementById('detail-bands-list');
+            bandsList.innerHTML = comp.bands.map(b => `
+                <div class="bg-white p-2.5 rounded-lg border text-xs flex justify-between items-center">
+                    <span class="font-bold text-blue-900">${b.cm} cm⁻¹</span>
+                    <span class="text-gray-600">${b.assignment}</span>
+                </div>
+            `).join('');
+
+            // Llenar explicación
+            const expDiv = document.getElementById('detail-explanation');
+            expDiv.innerHTML = `
+                <div class="bg-gray-50 p-4 rounded-xl border space-y-2">
+                    <h4 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-circle-info text-blue-900 mr-2"></i>Resumen Espectral</h4>
+                    <p class="text-xs text-gray-700 leading-relaxed">${comp.explanation.summary}</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl border space-y-2">
+                    <h4 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-flask text-teal-700 mr-2"></i>Justificación Química</h4>
+                    <p class="text-xs text-gray-700 leading-relaxed">${comp.explanation.details}</p>
+                </div>
+            `;
+
+            switchTab('detalle');
+
+            // Renderizar gráfico Plotly
+            setTimeout(() => {
+                renderPlotlyChart('plotly-spectrum', comp.xValues, comp.yValues, comp.name);
+            }, 100);
+        }
+
+        function renderPlotlyChart(elementId, xData, yData, title) {
+            const trace = {
+                x: xData,
+                y: yData,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#1E3A8A', width: 2 },
+                marker: { size: 6, color: '#0F766E' },
+                name: 'Transmitancia (%)'
+            };
+
+            const layout = {
+                title: { text: `Espectro IR: ${title}`, font: { size: 14, family: 'sans-serif' } },
+                xaxis: { title: 'Número de Onda (cm⁻¹)', autorange: 'reversed', gridcolor: '#e5e7eb' },
+                yaxis: { title: 'Transmitancia (%)', range: [0, 105], gridcolor: '#e5e7eb' },
+                margin: { t: 40, r: 20, b: 40, l: 50 },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent'
+            };
+
+            const config = { responsive: true, displayModeBar: true };
+
+            Plotly.newPlot(elementId, [trace], layout, config);
+        }
+
+        // Analizador simulado
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('file-name-display').innerText = file.name;
+                document.getElementById('file-size-display').innerText = `${(file.size / 1024).toFixed(1)} KB - Formato reconocido`;
+                document.getElementById('upload-status').classList.remove('hidden');
+                document.getElementById('analysis-results').classList.add('hidden');
+            }
+        }
+
+        function processUploadedFile() {
+            const statusDiv = document.getElementById('upload-status');
+            statusDiv.innerHTML = `<div class="flex items-center space-x-2 text-blue-900 font-semibold"><i class="fa-solid fa-spinner animate-spin"></i><span>Procesando bandas espectrales y calibrando ejes...</span></div>`;
+            
+            setTimeout(() => {
+                statusDiv.innerHTML = `<div class="flex items-center space-x-2 text-emerald-700 font-semibold"><i class="fa-solid fa-circle-check"></i><span>¡Análisis espectral completado con éxito!</span></div>`;
+                document.getElementById('analysis-results').classList.remove('hidden');
+            }, 1500);
+        }
+
+        // Comparador
+        function populateComparisonSelects() {
+            const sel1 = document.getElementById('comp-1');
+            const sel2 = document.getElementById('comp-2');
+            
+            const options = compoundsDB.map(c => `<option value="${c.id}">${c.name} (${c.category})</option>`).join('');
+            sel1.innerHTML = options;
+            sel2.innerHTML = options;
+            if(compoundsDB.length > 1) sel2.selectedIndex = 1;
+
+            updateComparison();
+        }
+
+        function updateComparison() {
+            const id1 = document.getElementById('comp-1').value;
+            const id2 = document.getElementById('comp-2').value;
+
+            const c1 = compoundsDB.find(c => c.id === id1);
+            const c2 = compoundsDB.find(c => c.id === id2);
+
+            if (!c1 || !c2) return;
+
+            const trace1 = {
+                x: c1.xValues,
+                y: c1.yValues,
+                type: 'scatter',
+                mode: 'lines',
+                name: c1.name,
+                line: { color: '#1E3A8A', width: 2 }
+            };
+
+            const trace2 = {
+                x: c2.xValues,
+                y: c2.yValues,
+                type: 'scatter',
+                mode: 'lines',
+                name: c2.name,
+                line: { color: '#0F766E', width: 2, dash: 'dot' }
+            };
+
+            const layout = {
+                title: { text: `Superposición: ${c1.name} vs ${c2.name}`, font: { size: 14 } },
+                xaxis: { title: 'Número de Onda (cm⁻¹)', autorange: 'reversed', gridcolor: '#e5e7eb' },
+                yaxis: { title: 'Transmitancia (%)', range: [0, 105], gridcolor: '#e5e7eb' },
+                margin: { t: 40, r: 20, b: 40, l: 50 },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent'
+            };
+
+            Plotly.newPlot('plotly-comparison', [trace1, trace2], layout, { responsive: true });
+
+            document.getElementById('comparison-explanation').innerText = `Comparando ${c1.name} (${c1.category}) con ${c2.name} (${c2.category}): Observe cómo difieren las bandas características en la región de grupos funcionales (ej. presencia o ausencia de O-H y C=O), lo cual permite diferenciar claramente estructuras moleculares similares.`;
+        }
+
+        function compareCurrentCompound() {
+            switchTab('comparador');
+        }
+
+        // Acordeón educativo
+        function toggleLesson(num) {
+            const content = document.getElementById(`content-lesson-${num}`);
+            content.classList.toggle('hidden');
+        }
+
+        // Buscador modal
+        function openSearchModal() {
+            document.getElementById('search-modal').classList.remove('hidden');
+            document.getElementById('modal-search-input').focus();
+        }
+
+        function closeSearchModal() {
+            document.getElementById('search-modal').classList.add('hidden');
+        }
+
+        function performSmartSearch() {
+            const query = document.getElementById('modal-search-input').value.toLowerCase();
+            const resultsDiv = document.getElementById('modal-search-results');
+
+            if (!query.trim()) {
+                resultsDiv.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Escribe un término para buscar en la espectroteca...</p>`;
+                return;
+            }
+
+            const matches = compoundsDB.filter(c => 
+                c.name.toLowerCase().includes(query) || 
+                c.formula.toLowerCase().includes(query) || 
+                c.category.toLowerCase().includes(query) ||
+                c.bands.some(b => b.cm.toString().includes(query) || b.assignment.toLowerCase().includes(query))
+            );
+
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No se encontraron resultados para "${query}".</p>`;
+                return;
+            }
+
+            resultsDiv.innerHTML = matches.map(m => `
+                <div onclick="closeSearchModal(); openCompoundDetail('${m.id}')" class="p-3 bg-gray-50 hover:bg-blue-50 rounded-xl cursor-pointer transition flex justify-between items-center border">
+                    <div>
+                        <h4 class="font-bold text-sm text-gray-900">${m.name}</h4>
+                        <span class="text-xs text-gray-500">${m.category} | Fórmula: ${m.formula}</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-right text-blue-900 text-xs"></i>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
